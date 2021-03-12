@@ -1,5 +1,7 @@
 
 logs
+/datasets/*
+!/datasets/README.md
 
 # compilation and distribution
 __pycache__
@@ -9,9 +11,13 @@ _ext
 *.so
 *.dll
 *.egg-info/
+*.c
+*.out
 build/
 dist/
 wheels/
+tags
+apex/
 
 # pytorch/python/numpy formats
 *.pth
@@ -19,6 +25,7 @@ wheels/
 *.npy
 *.ts
 model_ts*.txt
+.python-version
 
 # ipython/jupyter notebooks
 *.ipynb
