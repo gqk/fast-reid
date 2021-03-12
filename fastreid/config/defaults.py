@@ -135,6 +135,9 @@ _C.KD.MODEL_WEIGHTS = ['',]
 # INPUT
 # -----------------------------------------------------------------------------
 _C.INPUT = CN()
+# soft resize settings
+_C.INPUT.SOFT_RESIZE = False
+_C.INPUT.SOFT_RESIZE_BETA = 1.0
 # Size of the image during training
 _C.INPUT.SIZE_TRAIN = [256, 128]
 # Size of the image during test
