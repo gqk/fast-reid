@@ -4,14 +4,24 @@
 @contact: sherlockliao01@gmail.com
 """
 
+from functools import partial
+
 import torchvision.transforms as T
 
 from .transforms import *
 from .autoaugment import AutoAugment
+from .soft_pool import SoftResize
 
 
 def build_transforms(cfg, is_train=True):
     res = []
+
+    soft_resize = cfg.INPUT.SOFT_RESIZE
+
+    if soft_resize:
+        Resize = partial(SoftResize, beta=cfg.INPUT.SOFT_RESIZE_BETA)
+    else:
+        Resize = T.Resize
 
     if is_train:
         size_train = cfg.INPUT.SIZE_TRAIN
@@ -56,7 +66,7 @@ def build_transforms(cfg, is_train=True):
         if do_autoaug:
             res.append(T.RandomApply([AutoAugment()], p=autoaug_prob))
 
-        res.append(T.Resize(size_train, interpolation=3))
+        res.append(Resize(size_train, interpolation=3))
         if do_flip:
             res.append(T.RandomHorizontalFlip(p=flip_prob))
         if do_pad:
@@ -75,6 +85,6 @@ def build_transforms(cfg, is_train=True):
             res.append(RandomPatch(prob_happen=rpt_prob))
     else:
         size_test = cfg.INPUT.SIZE_TEST
-        res.append(T.Resize(size_test, interpolation=3))
+        res.append(Resize(size_test, interpolation=3))
         res.append(ToTensor())
     return T.Compose(res)
