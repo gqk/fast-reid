@@ -31,13 +31,14 @@ class Dataset(object):
     _junk_pids = []  # contains useless person IDs, e.g. background, false detections
 
     def __init__(self, train, query, gallery, transform=None, mode='train',
-                 combineall=False, verbose=True, **kwargs):
+                 combineall=False, splitno=-1, verbose=True, **kwargs):
         self.train = train
         self.query = query
         self.gallery = gallery
         self.transform = transform
         self.mode = mode
         self.combineall = combineall
+        self.splitno = splitno
         self.verbose = verbose
 
         self.num_train_pids = self.get_num_pids(self.train)

@@ -39,7 +39,12 @@ def build_reid_train_loader(cfg, mapper=None, **kwargs):
 
     train_items = list()
     for d in cfg.DATASETS.NAMES:
-        dataset = DATASET_REGISTRY.get(d)(root=_root, combineall=cfg.DATASETS.COMBINEALL, **kwargs)
+        dataset = DATASET_REGISTRY.get(d)(
+            root=_root,
+            combineall=cfg.DATASETS.COMBINEALL,
+            splitno=cfg.DATASETS.SPLITNO,
+            **kwargs
+        )
         if comm.is_main_process():
             dataset.show_train()
         train_items.extend(dataset.train)

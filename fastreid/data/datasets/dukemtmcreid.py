@@ -39,23 +39,37 @@ class DukeMTMC(ImageDataset):
         self.query_dir = osp.join(self.dataset_dir, 'query')
         self.gallery_dir = osp.join(self.dataset_dir, 'bounding_box_test')
 
+        splitno = kwargs.get('splitno', -1)
+
+        self.list_train = None
+        if splitno >= 0:
+            self.list_train = osp.join(self.dataset_dir, f"list_train_{splitno:02d}.txt")
+
         required_files = [
             self.dataset_dir,
             self.train_dir,
             self.query_dir,
             self.gallery_dir,
         ]
+        if splitno >= 0:
+            required_files.append(self.list_train)
         self.check_before_run(required_files)
 
-        train = self.process_dir(self.train_dir)
+        train = self.process_dir(self.train_dir, list_path=self.list_train)
         query = self.process_dir(self.query_dir, is_train=False)
         gallery = self.process_dir(self.gallery_dir, is_train=False)
 
         super(DukeMTMC, self).__init__(train, query, gallery, **kwargs)
 
-    def process_dir(self, dir_path, is_train=True):
-        img_paths = glob.glob(osp.join(dir_path, '*.jpg'))
+    def process_dir(self, dir_path, list_path=None, is_train=True):
         pattern = re.compile(r'([-\d]+)_c(\d)')
+
+        if list_path:
+            with open(list_path, 'r') as txt:
+                # Be careful of the \n at the end of fname
+                img_paths = [osp.join(dir_path, fname[:-1]) for fname in txt]
+        else:
+            img_paths = glob.glob(osp.join(dir_path, '*.jpg'))
 
         data = []
         for img_path in img_paths:

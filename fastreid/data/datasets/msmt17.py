@@ -64,6 +64,12 @@ class MSMT17(ImageDataset):
         self.list_query_path = osp.join(self.dataset_dir, main_dir, 'list_query.txt')
         self.list_gallery_path = osp.join(self.dataset_dir, main_dir, 'list_gallery.txt')
 
+        splitno = kwargs.get('splitno', -1)
+        if splitno >= 0:
+            self.list_train_path = osp.join(
+                self.dataset_dir, main_dir, f"list_train_{splitno:02d}.txt"
+            )
+
         required_files = [
             self.dataset_dir,
             self.train_dir,
@@ -72,7 +78,9 @@ class MSMT17(ImageDataset):
         self.check_before_run(required_files)
 
         train = self.process_dir(self.train_dir, self.list_train_path)
-        val = self.process_dir(self.train_dir, self.list_val_path)
+        val = []
+        if splitno < 0:
+            val = self.process_dir(self.train_dir, self.list_val_path)
         query = self.process_dir(self.test_dir, self.list_query_path, is_train=False)
         gallery = self.process_dir(self.test_dir, self.list_gallery_path, is_train=False)
 

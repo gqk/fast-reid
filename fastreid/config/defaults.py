@@ -189,6 +189,8 @@ _C.DATASETS.NAMES = ("Market1501",)
 _C.DATASETS.TESTS = ("Market1501",)
 # Combine trainset and testset joint training
 _C.DATASETS.COMBINEALL = False
+# Only use one of several splits, splitno start from 0
+_C.DATASETS.SPLITNO = -1
 
 # -----------------------------------------------------------------------------
 # DataLoader
