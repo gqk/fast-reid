@@ -1,7 +1,6 @@
 import argparse
 from collections import defaultdict
-from itertools import chain
-from functools import cached_property, partial
+from functools import partial
 from pathlib import Path
 from typing import List, Any, Callable, Union
 
@@ -33,6 +32,9 @@ class RandomSplit:
 
         self.total_splits = int(n_splits / (1 - first_split_ratio))
 
+        self.__save_files = None
+        self.__group_images = None
+
     def __call__(self, seed: int = None):
         total_splits, seed = self.total_splits, seed or self.seed
         kfold = KFold(n_splits=total_splits, shuffle=True, random_state=seed)
@@ -44,38 +46,42 @@ class RandomSplit:
         for i, current_split in enumerate(splits[-self.n_splits :]):
             self.save_split(i + 1, current_split)
 
-    @cached_property
+    @property
     def save_files(self):
-        n_digits = 1 + len(str(self.n_splits))
-        name, suffix = self.save_filename.name.split(".", maxsplit=1)
-        return [
-            self.save_path / f"{name}_{splitno:0{n_digits}d}.{suffix}"
-            for splitno in range(0, self.n_splits + 1)
-        ]
+        if not self.__save_files:
+            n_digits = 1 + len(str(self.n_splits))
+            name, suffix = self.save_filename.name.split(".", maxsplit=1)
+            self.__save_files = [
+                self.save_path / f"{name}_{splitno:0{n_digits}d}.{suffix}"
+                for splitno in range(0, self.n_splits + 1)
+            ]
+        return self.__save_files
 
-    @cached_property
+    @property
     def group_images(self):
-        group_images_dict = defaultdict(list)
-        if isinstance(self.data_path, (list, tuple)):
-            data_paths = self.data_path
-        else:
-            data_paths = [self.data_path]
-
-        for data_path in data_paths:
-            if data_path.is_file():
-                with data_path.open(mode="r") as stream:
-                    for line in stream:
-                        key = self.key_fn(line[:-1])
-                        group_images_dict[key].append(line[:-1])
+        if not self.__group_images:
+            group_images_dict = defaultdict(list)
+            if isinstance(self.data_path, (list, tuple)):
+                data_paths = self.data_path
             else:
-                for img_type in self.image_types:
-                    for image in data_path.glob(f"*.{img_type}"):
-                        image_name = image.name
-                        # ignore hidden files
-                        if image_name[0] != ".":
-                            key = self.key_fn(image_name)
-                            group_images_dict[key].append(image_name)
-        return list(group_images_dict.values())
+                data_paths = [self.data_path]
+
+            for data_path in data_paths:
+                if data_path.is_file():
+                    with data_path.open(mode="r") as stream:
+                        for line in stream:
+                            key = self.key_fn(line[:-1])
+                            group_images_dict[key].append(line[:-1])
+                else:
+                    for img_type in self.image_types:
+                        for image in data_path.glob(f"*.{img_type}"):
+                            image_name = image.name
+                            # ignore hidden files
+                            if image_name[0] != ".":
+                                key = self.key_fn(image_name)
+                                group_images_dict[key].append(image_name)
+            self.__group_images = list(group_images_dict.values())
+        return self.__group_images
 
     def save_seed(self, seed: int):
         name, suffix = self.save_filename.name.split(".", maxsplit=1)
